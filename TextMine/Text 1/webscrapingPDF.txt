@@ -1,0 +1,10 @@
+
+webscraping pdf files
+
+
+data is world rowing 
+
+library(rvest)
+url <- 'http://www.worldrowing.com/events/2017-european-rowing-championships/documents#Eight'
+links <- url %>% read_html() %>% html_nodes('a') %>% html_attr('href') %>% grep('GPS', ., value = T)
+head(links, n = 20)

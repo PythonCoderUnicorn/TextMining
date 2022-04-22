@@ -1,0 +1,61 @@
+
+# Text Mining
+
+library(dplyr)
+library(tidytext)
+library(stringr)
+library(gutenbergr)
+library(ggplot2)
+
+
+#--- get books in raw format
+AuthorBooks = books 
+    %>% group_by(book) 
+    %>% mutate(line_number = row_number(),
+                chapter = cumsum(str_detect(text, 
+                                 regex("^chapter [\\divxlc]", 
+                                        ignore_case = TRUE)))) %>%
+    ungroup()
+
+#-- tokenize words and into a Tidyformat
+tidy_books = AuthorBooks %>% unnest_tokens(word, text)
+
+#-- get stop_words 
+data(stop_words)
+tidy_books = tidy_books %>% anti_join(stop_words)
+
+#-- count words 
+tidy_books %>%
+    count(word, sort= T) %>%
+    filter(n > 600) %>%
+    mutate(word = reorder(word, n)) %>%
+    ggplot( aes(n, word)) +
+    geom_col() +
+    labs(y= NULL)
+
+#-------------------------
+
+
+
+books = gutenberg_download( c(35,36,5230,159)) # book IDs
+
+tidy_books = books %>%
+    unnest_tokens(word, text) %>%
+    anti_join(stop_words)
+
+# common words
+tidy_books %>%
+    count(word, sort= T) %>%
+    filter(n > 200) %>%
+    mutate(word = reorder(word, n)) %>%
+    ggplot( aes(n, word)) +
+    geom_col() +
+    labs(y= NULL)
+
+
+
+
+# ================== term frequency (tf), inverse document freq (idf)
+# idf increase weights for less common words
+# idf measures how important a word is to a document or corpus
+
